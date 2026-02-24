@@ -4,7 +4,7 @@
 
 #creation of VPC
 resource "google_compute_network" "vpc_network_animeitor" {
-  name                    = "vpc-animeitor"
+  name                    = var.vpc_animeitor_network_name
   auto_create_subnetworks = false
 }
 
@@ -12,9 +12,9 @@ resource "google_compute_network" "vpc_network_animeitor" {
 
 #creation of 1st subnet
 resource "google_compute_subnetwork" "subnet3_animeitor" {
-  name          = "subnet-us-central1-02"
+  name          = var.animeitor_subnet_name
   network       = google_compute_network.vpc_network_animeitor.id
-  ip_cidr_range = "192.168.30.0/24"
+  ip_cidr_range = var.animeitor_subnet_cidr
   region        = var.primary_region
 }
 
@@ -28,10 +28,10 @@ resource "google_compute_firewall" "allow_https_animeitor" {
 
   allow {
     protocol = "tcp"
-    ports    = ["443"]
+    ports    = [var.firewall_https_port]
   }
 
-  source_ranges = ["0.0.0.0/0"]
+  source_ranges = var.safety_ingress_cidr
 }
 
 resource "google_compute_firewall" "allow_http_animeitor" {
@@ -41,10 +41,10 @@ resource "google_compute_firewall" "allow_http_animeitor" {
 
   allow {
     protocol = "tcp"
-    ports    = ["80"]
+    ports    = [var.firewall_http_port]
   }
 
-  source_ranges = ["0.0.0.0/0"]
+  source_ranges = var.safety_ingress_cidr
 }
 
 resource "google_compute_firewall" "allow_ssh_animeitor" {
@@ -54,10 +54,10 @@ resource "google_compute_firewall" "allow_ssh_animeitor" {
 
   allow {
     protocol = "tcp"
-    ports    = ["22"]
+    ports    = [var.firewall_ssh_port]
   }
 
-  source_ranges = ["0.0.0.0/0"]
+  source_ranges = var.safety_ingress_cidr
 }
 
 resource "google_compute_firewall" "allow_icmp_animeitor" {
@@ -69,35 +69,21 @@ resource "google_compute_firewall" "allow_icmp_animeitor" {
     protocol = "icmp"
   }
 
-  source_ranges = ["0.0.0.0/0"]
+  source_ranges = var.safety_ingress_cidr
 }
 
 ################### STATIC IPs ################### 
 
-#reservation of 1st static IP
+#reservation of animeitor's static IP
 resource "google_compute_address" "static_ip_vm3_animeitor" {
   name         = "static-ip-animeitor-01"
   network_tier = "STANDARD"
   region       = var.primary_region
 }
 
-# #reservation of 2nd static IP
-# resource "google_compute_address" "static_ip_vm7_animeitor" {
-#   name         = "static-ip-animeitor-02"
-#   network_tier = "STANDARD"
-#   region       = var.region_01
-# }
-
-# ################### SNAPTHOTS ###################
-
-# resource "google_compute_snapshot" "vm8_src_snapshot" {
-#   name        = "snapshot-src-vm8"
-#   source_disk = "projects/${var.project}/zones/${var.zone_01}/disks/animeitor-01"
-# }
-
 ################### VMs ################### 
 
-#creation of 1st VM
+#creation of Animeitor VM
 resource "google_compute_instance" "vm3_animeitor" {
   name         = var.name_animeitor_vm
   machine_type = var.default_shape_machine_animeitor
@@ -121,34 +107,3 @@ resource "google_compute_instance" "vm3_animeitor" {
     }
   }
 }
-
-# resource "google_compute_disk" "vm8_disk" {
-#   name     = "boot-disk-vm8-clone"
-#   type     = var.disk_type
-#   zone     = var.zone_01
-#   size     = var.disk_size_gb
-#   snapshot = google_compute_snapshot.vm8_src_snapshot.self_link
-# }
-
-# #creation of 2nd VM
-# resource "google_compute_instance" "vm8_animeitor" {
-#   name         = var.name_vm_08
-#   machine_type = var.default_shape_machine_animeitor
-#   zone         = var.zone_01
-#   tags         = ["http-server", "https-server", "ssh", "ping"]
-
-#   boot_disk {
-#       source = google_compute_disk.vm8_disk.self_link
-#   }
-
-#   network_interface {
-#     network    = google_compute_network.vpc_network_animeitor.id
-#     subnetwork = google_compute_subnetwork.subnet3_animeitor.id
-#     access_config {
-#       nat_ip       = google_compute_address.static_ip_vm7_animeitor.address
-#       network_tier = "STANDARD"
-#     }
-#   }
-  
-#   depends_on = [google_compute_disk.vm8_disk]
-# }

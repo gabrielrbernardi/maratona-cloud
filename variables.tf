@@ -61,3 +61,54 @@ variable "new_disk_size_boca" {
 variable "disk_type" {
   description = "Disk type for all VMs"
 }
+
+variable "vpc_boca_network_name" {
+  description = "Name for the VPC Network"
+}
+
+variable "vpc_animeitor_network_name" {
+  description = "Name for the VPC Network for Animeitor"
+}
+
+variable "boca_primary_subnet_name" {
+  description = "Name for the BOCA Primary Subnet"
+}
+variable "boca_primary_subnet_cidr" {
+  description = "CIDR block for the BOCA Primary Subnet"
+}
+
+variable "boca_secondary_subnet_name" {
+  description = "Name for the BOCA Secondary Subnet"
+}
+
+variable "boca_secondary_subnet_cidr" {
+  description = "CIDR block for the BOCA Secondary Subnet"
+}
+
+variable "animeitor_subnet_name" {
+  description = "Name for the Animeitor Subnet"
+}
+
+variable "animeitor_subnet_cidr" {
+  description = "CIDR block for the Animeitor Subnet"
+}
+
+variable "safety_ingress_cidr" {
+  description = "A list for CIDR blocks for safety ingress rules"
+}
+
+variable "firewall_ssh_port" {
+  description = "Port number for SSH access in firewall rules"
+}
+
+variable "firewall_http_port" {
+  description = "Port number for HTTP access in firewall rules"
+}
+
+variable "firewall_https_port" {
+  description = "Port number for HTTPS access in firewall rules"
+}
+
+variable "firewall_postgresql_port" {
+  description = "Port number for PostgreSQL access in firewall rules"
+}
