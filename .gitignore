@@ -1,0 +1,11 @@
+*.tfvars
+*.tfstate
+*.tfstate.backup
+*.zip
+
+*lock*
+*plan*
+
+.terraform/
+
+*copy*
