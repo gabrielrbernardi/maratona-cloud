@@ -57,7 +57,7 @@ resource "google_compute_firewall" "allow_ssh_animeitor" {
     ports    = [var.firewall_ssh_port]
   }
 
-  source_ranges = var.safety_ingress_cidr
+  source_ranges = var.general_ingress_cidr
 }
 
 resource "google_compute_firewall" "allow_icmp_animeitor" {
@@ -70,6 +70,19 @@ resource "google_compute_firewall" "allow_icmp_animeitor" {
   }
 
   source_ranges = var.safety_ingress_cidr
+}
+
+resource "google_compute_firewall" "allow_proxy_to_animeitor" {
+  target_tags = ["proxy-animeitor"]
+  name        = "allow-proxy-to-animeitor"
+  network     = google_compute_network.vpc_network_animeitor.id
+
+  allow {
+    protocol = "tcp"
+    ports    = [var.firewall_http_port, var.firewall_https_port, var.firewall_ssh_port]
+  }
+
+  source_ranges = [var.proxy_subnet_cidr]
 }
 
 ################### STATIC IPs ################### 

@@ -97,6 +97,14 @@ variable "safety_ingress_cidr" {
   description = "A list for CIDR blocks for safety ingress rules"
 }
 
+variable "cloudflare_ingress_cidr" {
+  description = "A list for CIDR blocks for Cloudflare IP addresses"
+}
+
+variable "general_ingress_cidr" {
+  description = "A list for CIDR blocks for non-safety ingress rules"
+}
+
 variable "firewall_ssh_port" {
   description = "Port number for SSH access in firewall rules"
 }
@@ -111,4 +119,71 @@ variable "firewall_https_port" {
 
 variable "firewall_postgresql_port" {
   description = "Port number for PostgreSQL access in firewall rules"
+}
+
+variable "proxy_vpc_name" {
+  description = "Name for the Proxy VPC"
+}
+
+variable "proxy_subnet_name" {
+  description = "Name for the Proxy Subnet"
+}
+
+variable "proxy_subnet_cidr" {
+  description = "CIDR block for the Proxy Subnet"
+}
+
+variable "proxy_instance_name" {
+  description = "Name for the Proxy VM instance"
+}
+
+variable "proxy_instance_shape" {
+  description = "Machine type for the Proxy VM instance"
+}
+
+variable "proxy_instance_disk_size" {
+  description = "Disk size for the Proxy VM instance in GB"
+}
+
+variable "domain_name" {
+  description = "Domain name for the reverse proxy configuration"
+  default     = "example.com"
+}
+
+variable "boca_ip" {
+  description = "Static IP address for BOCA VM"
+  default     = "8.8.8.8"
+}
+
+variable "animeitor_ip" {
+  description = "Static IP address for Animeitor VM"
+  default     = "8.8.8.8"
+}
+
+variable "peering_proxy_to_boca_name" {
+  description = "Name for the VPC peering connection from Proxy to BOCA"
+}
+
+variable "peering_boca_to_proxy_name" {
+  description = "Name for the VPC peering connection from BOCA to Proxy"
+}
+
+variable "peering_proxy_to_animeitor_name" {
+  description = "Name for the VPC peering connection from Proxy to Animeitor"
+}
+
+variable "peering_animeitor_to_proxy_name" {
+  description = "Name for the VPC peering connection from Animeitor to Proxy"
+}
+
+variable "boca_server_name_url" {
+  description = "Server name to be used in the reverse proxy configuration for BOCA. e.g. boca.your-domain.com"
+}
+
+variable "animeitor_server_name_url" {
+  description = "Server name to be used in the reverse proxy configuration for Animeitor. e.g. animeitor.your-domain.com"
+}
+
+variable "register_domain_email" {
+  description = "The email user to be used to register the domain"
 }

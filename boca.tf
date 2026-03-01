@@ -63,7 +63,7 @@ resource "google_compute_firewall" "allow_ssh" {
     ports    = [var.firewall_ssh_port]
   }
 
-  source_ranges = var.safety_ingress_cidr
+  source_ranges = var.general_ingress_cidr
 }
 
 resource "google_compute_firewall" "allow_icmp" {
@@ -101,8 +101,20 @@ resource "google_compute_firewall" "allow_postgresql" {
     ports    = [var.firewall_postgresql_port]
   }
 
-  source_ranges = [var.boca_primary_subnet_cidr, var.boca_secondary_subnet_cidr, var.animeitor_subnet_cidr]
-  # source_ranges = ["35.211.103.119/32", "35.209.28.159/32"]
+  source_ranges = [var.boca_primary_subnet_cidr, var.boca_secondary_subnet_cidr, var.animeitor_subnet_cidr, var.proxy_subnet_cidr]
+}
+
+resource "google_compute_firewall" "allow_proxy_to_boca" {
+  target_tags = ["proxy-boca"]
+  name        = "allow-proxy-to-boca"
+  network     = google_compute_network.vpc_network.id
+
+  allow {
+    protocol = "tcp"
+    ports    = [var.firewall_http_port, var.firewall_https_port, var.firewall_ssh_port]
+  }
+
+  source_ranges = [var.proxy_subnet_cidr]
 }
 
 ################### STATIC IPs ################### 
