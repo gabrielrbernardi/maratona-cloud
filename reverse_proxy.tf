@@ -35,8 +35,6 @@ output "output_proxy_static_ip" {
 
 ################## FIREWALL ################### 
 
-
-
 #creation of firewall rules
 resource "google_compute_firewall" "allow_https_proxy" {
   target_tags = ["https-server"]
@@ -77,8 +75,7 @@ resource "google_compute_firewall" "allow_ssh_proxy" {
   source_ranges = var.general_ingress_cidr
 }
 
-################## VMs ################### 
-
+################## DEBUG ################### 
 output "boca_primary_local_ip" {
   value = google_compute_instance.vm4.network_interface[0].network_ip
 }
@@ -90,6 +87,8 @@ output "boca_secondary_local_ip" {
 output "animeitor_local_ip" {
   value = google_compute_instance.vm3_animeitor.network_interface[0].network_ip
 }
+
+################## VMs ################### 
 
 resource "google_compute_instance" "reverse_proxy" {
   name         = var.proxy_instance_name
@@ -115,26 +114,56 @@ resource "google_compute_instance" "reverse_proxy" {
   }
 
   metadata = {
-    user-data = <<EOF
+  user-data = <<EOF
 #cloud-config
 write_files:
+  - path: /var/lib/nginx/html/maintenance.html
+    permissions: '0644'
+    content: ${jsonencode(templatefile("${path.module}/maintenance.html.tpl", {
+        admin_email = var.register_domain_email
+        background_image_url = var.background_image_url
+        message_maintenance = var.message_maintenance
+    }))}
+
   - path: /etc/nginx/nginx.conf
-    content: ${jsonencode(templatefile("${path.module}/nginx.conf.tpl", {
-    http_port               = var.firewall_http_port,
-    https_port              = var.firewall_https_port,
-    server_name_boca        = var.boca_server_name_url,
-    server_name_animeitor   = var.animeitor_server_name_url,
-    ssl_certificate         = "/etc/letsencrypt/live/${var.boca_server_name_url}/fullchain.pem",
-    ssl_certificate_key     = "/etc/letsencrypt/live/${var.boca_server_name_url}/privkey.pem",
-    boca_primary_local_ip   = "http://${google_compute_instance.vm4.network_interface[0].network_ip}",
-    boca_secondary_local_ip = "http://${google_compute_instance.vm5.network_interface[0].network_ip}",
-    animeitor_local_ip      = "http://${google_compute_instance.vm3_animeitor.network_interface[0].network_ip}",
-}))}
+    content: ${replace(jsonencode(templatefile("${path.module}/nginx.conf.tpl", {
+        http_port               = var.firewall_http_port,
+        https_port              = var.firewall_https_port,
+        server_name_boca        = var.boca_server_name_url,
+        server_name_animeitor   = var.animeitor_server_name_url,
+        ssl_certificate         = "/etc/letsencrypt/live/${var.boca_server_name_url}/fullchain.pem",
+        ssl_certificate_key     = "/etc/letsencrypt/live/${var.boca_server_name_url}/privkey.pem",
+        boca_primary_local_ip   = "http://${google_compute_instance.vm4.network_interface[0].network_ip}",
+        boca_secondary_local_ip = "http://${google_compute_instance.vm5.network_interface[0].network_ip}",
+        animeitor_local_ip      = "http://${google_compute_instance.vm3_animeitor.network_interface[0].network_ip}",
+    })), "$$", "$")}
 
 runcmd:
+  # 1. Preparar diretórios persistentes
   - mkdir -p /var/lib/letsencrypt
-EOF
+  - mkdir -p /var/lib/nginx/html
 
+  # 2. Rodar Certbot (Geração inicial do certificado)
+  - |
+    docker run --rm --name certbot-gen \
+      -v /var/lib/letsencrypt:/etc/letsencrypt \
+      -p 80:80 \
+      certbot/certbot certonly --standalone --non-interactive --agree-tos \
+      -m ${var.register_domain_email} \
+      -d ${var.boca_server_name_url} \
+      -d ${var.animeitor_server_name_url}
+
+  # 3. Rodar o Nginx com o volume do HTML incluído
+  - |
+    docker run -d \
+      --name nginx-proxy \
+      --restart always \
+      -p 80:80 -p 443:443 \
+      -v /etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro \
+      -v /var/lib/letsencrypt:/etc/letsencrypt:ro \
+      -v /var/lib/nginx/html:/usr/share/nginx/html:ro \
+      nginx:latest
+EOF
 }
 
 depends_on = [google_compute_subnetwork.subnet_proxy, google_compute_address.static_ip_reverse_proxy]
