@@ -119,4 +119,8 @@ resource "google_compute_instance" "vm3_animeitor" {
       network_tier = "STANDARD"
     }
   }
+
+  metadata = {
+    enable-osconfig = "TRUE"
+  }
 }

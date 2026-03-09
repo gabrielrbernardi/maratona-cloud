@@ -158,6 +158,10 @@ resource "google_compute_instance" "vm4" {
       network_tier = "STANDARD"
     }
   }
+
+  metadata = {
+    enable-osconfig = "TRUE"
+  }
 }
 
 #creation of secondary BOCA VM
@@ -182,5 +186,9 @@ resource "google_compute_instance" "vm5" {
       nat_ip       = google_compute_address.static_ip_vm2.address
       network_tier = "STANDARD"
     }
+  }
+
+  metadata = {
+    enable-osconfig = "TRUE"
   }
 }
