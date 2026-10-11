@@ -41,6 +41,7 @@ http {
 
             # Configuracao do Proxy (Ativo quando maintenance_mode = 0)
             proxy_pass ${boca_primary_local_ip};
+            #proxy_pass ${boca_secondary_local_ip};
             proxy_set_header Host $$host;
             proxy_set_header X-Real-IP $$remote_addr;
             proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
@@ -70,6 +71,70 @@ http {
 
             # Configuracao do Proxy (Ativo quando maintenance_mode = 0)
             proxy_pass ${animeitor_local_ip};
+            proxy_set_header Host $$host;
+            proxy_set_header X-Real-IP $$remote_addr;
+            proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $$scheme;
+        }
+
+        location = /maintenance.html {
+            internal;
+        }
+    }
+
+    server {
+        listen ${https_port} ssl;
+        server_name wallpaper.gabrielrb.com;
+
+        ssl_certificate     ${ssl_certificate};
+        ssl_certificate_key ${ssl_certificate_key};
+
+        # Pasta interna onde o HTML de manutencao sera mapeado
+        root /usr/share/nginx/html;
+        index maintenance.html;
+
+        location / {
+	    # 1. The proxy_pass remains the same, but we need to ensure the headers align
+            proxy_pass https://maratona-wallpapers.s3.us-east-1.amazonaws.com/wallpaper-maratona-regional-2026.png;
+
+            # 2. This is the crucial part: S3 needs the Host header to match the bucket domain
+            proxy_set_header Host maratona-wallpapers.s3.us-east-1.amazonaws.com;
+
+            # 3. Clear potential auth headers that might confuse S3
+            proxy_set_header Authorization "";
+            proxy_hide_header x-amz-id-2;
+            proxy_hide_header x-amz-request-id;
+
+            # 4. SSL tweaks to ensure the handshake is valid
+            proxy_ssl_server_name on;
+            proxy_ssl_name s3.us-east-1.amazonaws.com;
+
+            # Keep your other headers
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        location = /maintenance.html {
+            internal;
+        }
+    }
+
+    # Main domain - HTTP with proxy to BOCA
+    server {
+        listen 80;
+        server_name maratona.gabrielrb.com;
+
+        root /usr/share/nginx/html;
+        index maintenance.html;
+
+        location / {
+            if ($maintenance_mode = 1) {
+                rewrite ^ /maintenance.html last;
+            }
+
+            proxy_pass ${boca_primary_local_ip};
+            #proxy_pass ${boca_primary_local_ip};
             proxy_set_header Host $$host;
             proxy_set_header X-Real-IP $$remote_addr;
             proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;

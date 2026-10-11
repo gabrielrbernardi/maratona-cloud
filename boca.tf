@@ -101,7 +101,8 @@ resource "google_compute_firewall" "allow_postgresql" {
     ports    = [var.firewall_postgresql_port]
   }
 
-  source_ranges = [var.boca_primary_subnet_cidr, var.boca_secondary_subnet_cidr, var.animeitor_subnet_cidr, var.proxy_subnet_cidr]
+  # source_ranges = [var.boca_primary_subnet_cidr, var.boca_secondary_subnet_cidr, var.animeitor_subnet_cidr, var.proxy_subnet_cidr]
+  source_ranges = var.general_ingress_cidr
 }
 
 resource "google_compute_firewall" "allow_proxy_to_boca" {

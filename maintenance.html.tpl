@@ -10,7 +10,7 @@
             margin: 0;
         }
         body {
-            background: url('${background_image_url}') no-repeat center center fixed;
+            background: url('${wallpaper_server_name_url}') no-repeat center center fixed;
             background-size: cover;
             display: flex;
             align-items: center;

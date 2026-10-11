@@ -31,7 +31,7 @@ resource "google_compute_firewall" "allow_https_animeitor" {
     ports    = [var.firewall_https_port]
   }
 
-  source_ranges = var.safety_ingress_cidr
+  source_ranges = var.general_ingress_cidr
 }
 
 resource "google_compute_firewall" "allow_http_animeitor" {

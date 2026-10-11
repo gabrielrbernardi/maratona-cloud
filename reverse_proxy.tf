@@ -46,7 +46,7 @@ resource "google_compute_firewall" "allow_https_proxy" {
     ports    = [var.firewall_https_port]
   }
 
-  source_ranges = var.cloudflare_ingress_cidr
+  source_ranges = var.general_ingress_cidr
 }
 
 resource "google_compute_firewall" "allow_http_proxy" {
@@ -59,7 +59,7 @@ resource "google_compute_firewall" "allow_http_proxy" {
     ports    = [var.firewall_http_port]
   }
 
-  source_ranges = var.cloudflare_ingress_cidr
+  source_ranges = var.general_ingress_cidr
 }
 
 resource "google_compute_firewall" "allow_ssh_proxy" {
@@ -108,8 +108,8 @@ resource "google_compute_instance" "reverse_proxy" {
     network    = google_compute_network.vpc_proxy_network.id
     subnetwork = google_compute_subnetwork.subnet_proxy.id
     access_config {
-      nat_ip       = google_compute_address.static_ip_reverse_proxy.address
-      network_tier = "STANDARD"
+      # nat_ip       = google_compute_address.static_ip_reverse_proxy.address
+      # network_tier = "STANDARD"
     }
   }
 
@@ -121,11 +121,12 @@ write_files:
     permissions: '0644'
     content: ${jsonencode(templatefile("${path.module}/maintenance.html.tpl", {
         admin_email = var.register_domain_email
-        background_image_url = var.background_image_url
+        wallpaper_server_name_url = var.wallpaper_server_name_url
         message_maintenance = var.message_maintenance
     }))}
 
-  - path: /etc/nginx/nginx.conf
+  - path: /var/lib/nginx/nginx.conf
+    permissions: '0777'
     content: ${replace(jsonencode(templatefile("${path.module}/nginx.conf.tpl", {
         http_port               = var.firewall_http_port,
         https_port              = var.firewall_https_port,
@@ -151,7 +152,8 @@ runcmd:
       certbot/certbot certonly --standalone --non-interactive --agree-tos \
       -m ${var.register_domain_email} \
       -d ${var.boca_server_name_url} \
-      -d ${var.animeitor_server_name_url}
+      -d ${var.animeitor_server_name_url} \
+      -d ${var.wallpaper_server_name_url}
 
   # 3. Rodar o Nginx com o volume do HTML incluído
   - |
@@ -159,7 +161,7 @@ runcmd:
       --name nginx-proxy \
       --restart always \
       -p 80:80 -p 443:443 \
-      -v /etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro \
+      -v /var/lib/nginx/nginx.conf:/etc/nginx/nginx.conf:ro \
       -v /var/lib/letsencrypt:/etc/letsencrypt:ro \
       -v /var/lib/nginx/html:/usr/share/nginx/html:ro \
       nginx:latest
