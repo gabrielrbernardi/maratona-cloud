@@ -134,6 +134,28 @@ resource "google_compute_address" "static_ip_vm2" {
   region       = var.secondary_region
 }
 
+#reservation of second primary BOCA static IP
+resource "google_compute_address" "static_ip_vm6" {
+  name         = "static-ip-boca-05"
+  network_tier = "STANDARD"
+  region       = var.primary_region
+}
+
+#reservation of second secondary BOCA static IP
+resource "google_compute_address" "static_ip_vm7" {
+  name         = "static-ip-boca-06"
+  network_tier = "STANDARD"
+  region       = var.secondary_region
+}
+
+output "output_boca_05_static_ip" {
+  value = google_compute_address.static_ip_vm6.address
+}
+
+output "output_boca_06_static_ip" {
+  value = google_compute_address.static_ip_vm7.address
+}
+
 ################### VMs ################### 
 
 #creation of primary BOCA VM
@@ -185,6 +207,64 @@ resource "google_compute_instance" "vm5" {
     subnetwork = google_compute_subnetwork.subnet2.id
     access_config {
       nat_ip       = google_compute_address.static_ip_vm2.address
+      network_tier = "STANDARD"
+    }
+  }
+
+  metadata = {
+    enable-osconfig = "TRUE"
+  }
+}
+
+#creation of second primary BOCA VM (duplicate of vm4)
+resource "google_compute_instance" "vm6" {
+  name         = var.name_boca_primary_02
+  machine_type = var.default_shape_machine_primary
+  zone         = var.primary_zone
+  tags         = ["http-server", "https-server", "ssh", "boca", "replication"]
+
+  boot_disk {
+    initialize_params {
+      image = var.image_os_boca
+      size  = var.new_disk_size_boca
+      type  = var.disk_type
+    }
+  }
+
+  network_interface {
+    network    = google_compute_network.vpc_network.id
+    subnetwork = google_compute_subnetwork.subnet1.id
+    access_config {
+      nat_ip       = google_compute_address.static_ip_vm6.address
+      network_tier = "STANDARD"
+    }
+  }
+
+  metadata = {
+    enable-osconfig = "TRUE"
+  }
+}
+
+#creation of second secondary BOCA VM (duplicate of vm5)
+resource "google_compute_instance" "vm7" {
+  name         = var.name_boca_secondary_02
+  machine_type = var.default_shape_machine_secondary
+  zone         = var.secondary_zone
+  tags         = ["http-server", "https-server", "ssh", "boca", "replication"]
+
+  boot_disk {
+    initialize_params {
+      image = var.image_os_boca
+      size  = var.new_disk_size_boca
+      type  = var.disk_type
+    }
+  }
+
+  network_interface {
+    network    = google_compute_network.vpc_network.id
+    subnetwork = google_compute_subnetwork.subnet2.id
+    access_config {
+      nat_ip       = google_compute_address.static_ip_vm7.address
       network_tier = "STANDARD"
     }
   }
