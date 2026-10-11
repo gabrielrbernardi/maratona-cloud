@@ -42,6 +42,14 @@ variable "name_boca_secondary" {
   description = "Name for the Boca Secondary Machine"
 }
 
+variable "name_boca_primary_02" {
+  description = "Name for the second Boca Primary Machine (duplicate of Boca Primary)"
+}
+
+variable "name_boca_secondary_02" {
+  description = "Name for the second Boca Secondary Machine (duplicate of Boca Secondary)"
+}
+
 variable "image_os_animeitor" {
   description = "OS Image name to be used with Animeitor"
 }
