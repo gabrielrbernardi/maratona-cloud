@@ -137,8 +137,16 @@ variable "proxy_instance_name" {
   description = "Name for the Proxy VM instance"
 }
 
+variable "proxy_02_instance_name" {
+  description = "Name for the second Proxy VM instance"
+}
+
 variable "proxy_instance_shape" {
   description = "Machine type for the Proxy VM instance"
+}
+
+variable "proxy_02_instance_shape" {
+  description = "Machine type for the second Proxy VM instance"
 }
 
 variable "proxy_instance_disk_size" {
@@ -182,14 +190,22 @@ variable "animeitor_server_name_url" {
   description = "Server name to be used in the reverse proxy configuration for Animeitor. e.g. animeitor.your-domain.com"
 }
 
+variable "wallpaper_server_name_url" {
+  description = "Server name to be used in the reverse proxy configuration for the wallpaper server. e.g. wallpaper.your-domain.com"
+}
+
 variable "register_domain_email" {
   description = "The email user to be used to register the domain"
 }
 
-variable "background_image_url" {
-  description = "URL for the background image to be used in the maintenance page"
-}
-
 variable "message_maintenance" {
   description = "Message to be displayed in the maintenance page"
+}
+
+variable "wallpaper_image_bucket_url" {
+  description = "URL for the S3 bucket where the wallpaper images are stored"
+}
+
+variable "bucket_url" {
+  description = "URL for the S3 bucket where the wallpapers are stored"
 }
